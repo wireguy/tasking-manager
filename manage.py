@@ -62,6 +62,12 @@ def send_weekly_manager_email():
     messages_sent = MessageService.send_weekly_managers_email()
     print(f'Sent {messages_sent} messages')
 
+@manager.command
+def send_weekly_mappers_email():
+    print('Sending weekly email contribution updates to mappers...')
+    messages_sent = MessageService.send_weekly_mappers_email()
+    print(f'Sent {messages_sent} messages')
+
 
 if __name__ == '__main__':
     manager.run()
