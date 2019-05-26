@@ -67,6 +67,7 @@ class Project(db.Model):
     license_id = db.Column(db.Integer, db.ForeignKey('licenses.id', name='fk_licenses'))
     geometry = db.Column(Geometry('MULTIPOLYGON', srid=4326))
     centroid = db.Column(Geometry('POINT', srid=4326))
+    country = db.Column(ARRAY(db.String), default=[])
     task_creation_mode = db.Column(db.Integer, default=TaskCreationMode.GRID.value, nullable=False)
 
     # Tags
