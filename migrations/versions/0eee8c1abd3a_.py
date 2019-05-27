@@ -33,21 +33,28 @@ def upgrade():
     for project in projects:
         project_id = project[0]
         project_polygon = shapely.wkt.loads(project[1])
+        print(project_id)
         # country_match = []
         with open('migrations/countries.json') as countries_data:
             countries = json.load(countries_data)
+            print(str(project_id) + ' geometry valid: ', project_polygon.is_valid)
+            if not project_polygon.is_valid:
+                print('Correcting project geometry')
+                project_polygon = project_polygon.buffer(0)
+                print('Corrected project geometry for: ' + str(project_id) + str(project_polygon.is_valid))
+
             for country in countries['features']:
                 country_polygon = shape(country['geometry'])
-                is_match = country_polygon.contains(project_polygon)
+                is_match = project_polygon.within(country_polygon)
                 if is_match:
                     print(str(project_id) + ' in ' + country['properties']['ADMIN'])
                     # country_match.append(country['properties']['ADMIN'])
-        # if len(country_match) > 0:
-                update_country_info = "update projects " + \
+                    # if len(country_match) > 0:
+                    update_country_info = "update projects " + \
                                       "set country = array_append(country, '{" + country['properties']['ADMIN'] + \
                                       "}') where id = " + str(project_id)
 
-                op.execute(update_country_info)
+                    op.execute(update_country_info)
 
 
 def downgrade():
