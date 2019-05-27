@@ -192,15 +192,40 @@ class MessageService:
         if db.session.query(task_histories_query.exists()).scalar() and project.author.email_address:
             message = ''
             num_contributions = 0
+            validations = 0
+            invalidations = 0 
+            mapped = 0
             for task_history in task_histories_query.all():
                 message += f'{task_history.actioned_by.username} {task_history.action_text} on {task_history.action_date} \n'
                 num_contributions += 1
+
+                if task_history.action_text == TaskStatus.VALIDATED:
+                    validations += 1 
+                    
+                if task_history.action_text == TaskStatus.MAPPED:
+                    mapped += 1 
+
+                invalidation_history = task_history.invalidation_history.first()
+                if invalidation_history:
+                    invalidations += 1
+
+            mapped_percent = (mapped * 100) / num_contributions
+            mapped_percent = f'{mapped_percent}%'
+            validation_percentage = (validations * 100) / num_contributions
+            #we substract invalidation percentage, this might be negative
+            validation_percentage -= (invalidations * 100) / num_contributions
+            validation_percentage = f'{validation_percentage}%'
 
             context = {
                 'USERNAME': project.author.username,
                 'PROJECT_NAME': project_info.name,
                 'CONTRIBUTION_LIST': message,
                 'NUM_CONTRIBUTIONS': str(num_contributions),
+                'MAPPED_TASKS':  str(mapped),
+                'MAPPED_TASKS_PERCENTAGE':  mapped_percent,
+                'VALIDATED_TASKS':  str(validations),
+                'INVALIDATED_TASKS':  str(invalidations),
+                'VALIDATION_PERCENTAGE':  validation_percentage,
             }
 
             SMTPService.send_templated_email(project.author.email_address, subject, 'weekly_email_managers_en', context)
